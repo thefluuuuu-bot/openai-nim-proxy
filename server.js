@@ -26,7 +26,7 @@ const MODEL_MAPPING = {
   'gpt-4': 'meta/llama-3.1-405b-instruct',
   'gpt-4-turbo': 'meta/llama-3.1-405b-instruct',
   'gpt-4o': 'deepseek-ai/deepseek-v3.1',
-  'claude-3-opus': 'meta/llama-3.1-405b-instruct',
+  'claude-3-opus': 'meta/llama-3.1-70b-instruct',
   'claude-3-sonnet': 'openai/gpt-oss-20b',
   'gemini-pro': 'qwen/qwen3-next-80b-a3b-thinking' 
 };
@@ -95,10 +95,11 @@ app.post('/v1/chat/completions', async (req, res) => {
     const nimRequest = {
       model: nimModel,
       messages: messages,
-      temperature: temperature || 0.6,
-      max_tokens: max_tokens || 4096,
+      temperature: temperature || 0.7,
+      max_tokens: max_tokens || 8192,
+      top_p: 0.9,
       extra_body: ENABLE_THINKING_MODE ? { chat_template_kwargs: { thinking: true } } : undefined,
-      stream: false
+      stream: stream !== undefined ? stream : true
     };
     
     // Make request to NVIDIA NIM API
@@ -115,6 +116,7 @@ app.post('/v1/chat/completions', async (req, res) => {
       res.setHeader('Content-Type', 'text/event-stream');
       res.setHeader('Cache-Control', 'no-cache');
       res.setHeader('Connection', 'keep-alive');
+      res.setHeader('X-Accel-Buffering', 'no');
       
       let buffer = '';
       let reasoningStarted = false;
